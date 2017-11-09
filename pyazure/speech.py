@@ -1,6 +1,7 @@
 import urllib
-import request
+import requests
 import uuid
+import json
 
 class Speech():
     HOST = "https://speech.platform.bing.com"
@@ -17,23 +18,23 @@ class Speech():
         headers = {
                 "Ocp-Apim-Subscription-Key":api_key
                 }
-        response = request.post(url, headers=headers)
+        response = requests.post(url, headers=headers)
         if response.ok:
-            self.token = str(response)[2:-1]
+            self.token = str(response.content)[2:-1]
+            print(self.token)
         else:
             response.raise_for_status()
 
     # if you want to select only lang, gender, name,
     # and text, please use this method
-    def text_to_speech(self, text):
+    def text_to_speech(self, lang, gender, name, text):
         template = """
-        <speak version='1.0' xml:lang={0}>
+        <speak version='1.0' xml:lang='{0}'>
             <voice xml:lang='{0}' xml:gender='{1}' name='{2}'>
                 {3}
             </voice>
         </speak>
         """
-
         url = self.HOST + "/synthesize"
         headers = {
                 "Content-type": "application/ssml+xml",
@@ -43,20 +44,32 @@ class Speech():
                 "X-Search-ClientID": self.instance_id,
                 "User-Agent": self.USER
                 }
-        name = self.get_name(lang, female)
-        data = template.format(lang, "Female" if female else "Male", name, text)
-        
-        response = request.post(url, data=data, headers=headers)
+        head_tmp = self.get_head_template(lang, gender, name)
+        data = template.format(lang, gender, head_tmp, text)
+        print(data)
+        response = requests.post(url, data=data, headers=headers)
 
         if response.ok:
             return response.content
         else:
             raise response.raise_for_status()
 
-    # TODO: あとでやる
     @classmethod
-    def get_name(cls, lang, female):
-        pass
+    def get_head_template(cls, lang, gender, name):
+        template = "Microsoft Server Speech Text to Speech Voice ({0}, {1})"
+        with open("data/voice.json", "r") as f:
+            voice = json.load(f)
+
+        if lang in voice["langs"]:
+            # nameで同様のことをする
+            index = voice["langs"].index(lang)
+            target_dict = voice["voices"][index]
+            if name in target_dict["name"]:
+                return template.format(lang, name)
+            else:
+                raise ValueError("this name is wrong")
+        else:
+            raise ValueError("this input language is not supported")
 
     @classmethod
     def __generate_id(cls):
