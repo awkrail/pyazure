@@ -6,7 +6,13 @@ pyazure is python api for microsoft azure
 ### Speech API
 ~~~~
 speech = Speech("your_api_key")
-wave = speech.text_to_speech(language, gender, name, text)
+speech.text_to_speech(language, name, text)
+
+# you can get wave from speech
+speech.wave
+
+# save
+speech.save("path")
 ~~~~
 
 language series, gender, and name is decided by MicroSoft.
