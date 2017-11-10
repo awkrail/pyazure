@@ -1,5 +1,7 @@
 # pyazure
-pyazure is python api for microsoft azure
+pyazure is python api for microsoft azure.
+
+I am going to develop python wrapper simple azure api as many as possible.
 
 ## Usage
 
